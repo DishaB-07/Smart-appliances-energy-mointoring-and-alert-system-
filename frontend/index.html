@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart Energy Monitor</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f172a, #020617);
+  color: white;
+}
+
+.container {
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: rgba(255,255,255,0.05);
+  padding: 20px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  text-align: center;
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.value {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.on { color: #22c55e; }
+.off { color: #ef4444; }
+
+canvas {
+  margin-top: 30px;
+}
+
+.alert {
+  text-align: center;
+  color: #ef4444;
+  font-size: 18px;
+  margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>⚡ Smart Energy Dashboard</h1>
+
+<div class="grid">
+
+<div class="card">
+<h3>Current</h3>
+<p id="current" class="value">0 A</p>
+</div>
+
+<div class="card">
+<h3>Power</h3>
+<p id="power" class="value">0 W</p>
+</div>
+
+<div class="card">
+<h3>Energy</h3>
+<p id="energy" class="value">0 kWh</p>
+</div>
+
+<div class="card">
+<h3>LED Status</h3>
+<p id="led" class="value on">NORMAL</p>
+</div>
+
+<div class="card">
+<h3>Buzzer</h3>
+<p id="buzzer" class="value off">OFF</p>
+</div>
+
+</div>
+
+<canvas id="chart"></canvas>
+
+<p id="alert" class="alert"></p>
+
+</div>
+
+<script>
+
+let energy = 0;
+
+const ctx = document.getElementById('chart').getContext('2d');
+
+const chart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Power (W)',
+      data: [],
+      borderWidth: 2
+    }]
+  }
+});
+
+async function fetchData() {
+  // TEMP FAKE DATA (jab tak backend nahi chalta)
+  let current = Math.random() * 3;
+  let power = current * 230;
+
+  energy += power / 3600;
+
+  document.getElementById('current').innerText = current.toFixed(2) + " A";
+  document.getElementById('power').innerText = power.toFixed(2) + " W";
+  document.getElementById('energy').innerText = (energy/1000).toFixed(4) + " kWh";
+
+  if (power > 500) {
+    document.getElementById('buzzer').innerText = "ON";
+    document.getElementById('buzzer').className = "value on";
+    document.getElementById('led').innerText = "ALERT";
+    document.getElementById('led').className = "value off";
+    document.getElementById('alert').innerText = "⚠ High Energy Usage!";
+  } else {
+    document.getElementById('buzzer').innerText = "OFF";
+    document.getElementById('buzzer').className = "value off";
+    document.getElementById('led').innerText = "NORMAL";
+    document.getElementById('led').className = "value on";
+    document.getElementById('alert').innerText = "";
+  }
+
+  chart.data.labels.push(new Date().toLocaleTimeString());
+  chart.data.datasets[0].data.push(power);
+
+  if (chart.data.labels.length > 10) {
+    chart.data.labels.shift();
+    chart.data.datasets[0].data.shift();
+  }
+
+  chart.update();
+}
+
+setInterval(fetchData, 2000);
+
+</script>
+
+</body>
+</html>
